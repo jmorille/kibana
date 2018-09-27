@@ -1,6 +1,16 @@
 version: '2.2'
 services:
 
+  web:
+    image: nginx
+    volumes:
+      - ./config/certs:/etc/nginx/ssl:ro
+      - ./conig/nginx-kibana.conf:/etc/nginx/conf.d/default.conf:ro
+    ports:
+      - "80:80"
+      - "443:443"
+    networks:
+      - esnet
 
   kibana:
     image: docker.elastic.co/kibana/kibana-oss:6.4.1
@@ -17,6 +27,7 @@ services:
   logstash:
     image: docker.elastic.co/logstash/logstash-oss:6.4.1
     ports:
+      - 5044:5044
       - 9600:9600
     volumes:
       - ./config/logstash:/usr/share/logstash/pipeline
