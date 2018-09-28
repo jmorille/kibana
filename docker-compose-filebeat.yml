@@ -1,17 +1,15 @@
 version: '3.7'
 services:
 
-
   filebeat:
     build: ./docker/filebeat
+    image: jmorille/nginx-filebeat
+    environment:
+    - ELASTICSEARCH_HOST=elasticsearch
     volumes:
-    - ./config/filebeat/filebeat.yml:/usr/share/filebeat/filebeat.yml:ro
-    - ./logs/nginx/:/var/log/
+    - ./logs/nginx/:/var/log/nginx/
     networks:
       - esnet
-
-
-
 
 networks:
   esnet:

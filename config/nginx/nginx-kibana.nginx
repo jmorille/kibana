@@ -52,7 +52,7 @@ server {
 
     # Logs
     error_log /var/log/nginx/error.log warn;
-    access_log /var/log/nginx/access.log;
+    access_log /var/log/nginx/access.log combined;
 
     # enable session resumption to improve https performance
     # http://vincent.bernat.im/en/blog/2011-ssl-session-reuse-rfc5077.html
