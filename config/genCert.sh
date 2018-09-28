@@ -7,7 +7,7 @@
 # Gen Path
 # #############
 export TARGET_DIR=certs
-export CA_DIR=$TARGET_DIR
+export CA_DIR=$TARGET_DIR/ca
 export INTER_DIR=$TARGET_DIR
 
 #export PUB_DIR=pub
@@ -362,16 +362,7 @@ function createDHECertificate {
 # ################################## ### #
 # ### Scheduler                      ### #
 # ################################## ### #
-
-function setup {
-
-  # Script Start
-  # chmod +x /build/*.sh
-
-
-  # Create Ca Certificate ==> $CA_DIR/$PUB_DIR/ca.pem
-  createCA|| exit 1
-
+function genCert {
   # Create Server Certificate ==>  $TARGET_DIR/$PRIV_DIR/$SERVER_FILENAME.csr
   createCertificateTls || exit 1
 
@@ -383,6 +374,21 @@ function setup {
 
   # Merge All Certificats ==>  $TARGET_DIR/$PUB_DIR/fullchain.pem
   mergeAllCertificats || exit 1
+
+}
+
+function setup {
+
+  # Script Start
+  # chmod +x /build/*.sh
+
+
+  # Create Ca Certificate ==> $CA_DIR/$PUB_DIR/ca.pem
+  createCA|| exit 1
+
+
+  # Generate certificat for domain
+  genCert || exit 1
 
   # KeyStore PKCS12 ==> $SERVER_FILENAME.p12
   # createNewKeystorePKCS12 || exit 1
@@ -425,8 +431,9 @@ usage() {
                                  verbosity.
 
     ACTION
-      setup
-      ca                Generate CA (Certificate Authority)
+      setup             Generate CA and Sign Server Certificate (
+      genCA             Generate CA (Certificate Authority)
+      genCert           Generate Sign Server Certificate with existing CA
       intermediateCa    Generate Intermediate CA
       autoSignCert      Generate auto sign Certificate for Test
       cert              Generate Server Certificate (for a specific domain)
@@ -576,8 +583,11 @@ case "${!OPTIND-}" in
   setup)
     setup $2 || exit 1
     ;;
-  ca)
+  genCA)
     createCA $2 || exit 1
+    ;;
+  genCert)
+    genCert $2 || exit 1
     ;;
   intermediateCa)
     createIntermediate $2 || exit 1
