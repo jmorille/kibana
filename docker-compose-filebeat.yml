@@ -1,0 +1,17 @@
+version: '3.7'
+services:
+
+
+  filebeat:
+    build: ./docker/filebeat
+    volumes:
+    - ./config/filebeat/filebeat.yml:/usr/share/filebeat/filebeat.yml:ro
+    - ./logs/nginx/:/var/log/
+    networks:
+      - esnet
+
+
+
+
+networks:
+  esnet:

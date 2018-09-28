@@ -51,8 +51,8 @@ server {
     ssl_certificate_key /etc/nginx/ssl/localhost/privkey.pem;
 
     # Logs
-    error_log /var/logs/nginx/error.log warn;
-    access_log /var/logs/nginx/access.log;
+    error_log /var/log/nginx/error.log warn;
+    access_log /var/log/nginx/access.log;
 
     # enable session resumption to improve https performance
     # http://vincent.bernat.im/en/blog/2011-ssl-session-reuse-rfc5077.html

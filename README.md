@@ -20,3 +20,9 @@ cd config
 ```bash
 docker-compose up
 ```
+
+
+## Ingest nginx log
+```bash
+docker-compose -f docker-compose-filebeat.yml up
+```
