@@ -22,8 +22,14 @@ docker-compose up
 ```
 
 
-## Ingest nginx log
+### Kibana Setup
+
 ```bash
 docker-compose -f docker-compose-filebeat.yml build
+docker-compose -f docker-compose-filebeat.yml run filebeat filebeat setup
+```
+
+### Ingest nginx log
+```bash
 docker-compose -f docker-compose-filebeat.yml up
 ```

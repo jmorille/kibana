@@ -1,5 +1,6 @@
 setup.kibana:
-  host: "http://kibana:5601/"
+  host: "kibana:5601"
+  protocol: "http"
 
 filebeat.config:
   prospectors:
