@@ -546,10 +546,10 @@ done
 # ################################## ### #
 # ### Certificate Subject            ### #
 # ################################## ### #
-COMMON_SUBJ="/C=FR/ST=France/O=Organisation"
-CA_SUBJ="$COMMON_SUBJ/L=Paris/OU=DSI/CN=RootCA"
-INTER_SUBJ="$COMMON_SUBJ/L=Paris/OU=DSI/CN=IntermediateCA"
-CERT_SUBJ="$COMMON_SUBJ/L=Paris/OU=IT/CN=$SERVER_CN"
+COMMON_SUBJ="/C=FR/ST=France/O=Organisation/L=Paris/S=Paris"
+CA_SUBJ="$COMMON_SUBJ/OU=DSI/CN=JmoCA"
+INTER_SUBJ="$COMMON_SUBJ/OU=DSI/CN=IntermediateCA"
+CERT_SUBJ="$COMMON_SUBJ/OU=DSI/CN=$SERVER_CN"
 
 
 # ################################## ### #

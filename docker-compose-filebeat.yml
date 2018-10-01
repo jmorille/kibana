@@ -8,6 +8,7 @@ services:
     - ELASTICSEARCH_HOST=elasticsearch
     volumes:
     - ./logs/nginx/:/var/log/nginx/
+    - ./config/certs/ca:/etc/nginx/ssl:ro
     networks:
       - esnet
 

@@ -1,0 +1,27 @@
+{
+  "target-url":"http://max:3000",
+  "send-access-token": true,
+  "bind-address":"0.0.0.0",
+  "http-port":"3001",
+  "applications":[
+    {
+      "base-path":"/",
+      "adapter-config":{
+        "realm":"dory",
+        "auth-server-url":"http://thor:8080/auth",
+        "ssl-required":"external",
+        "resource":"dory-app",
+        "public-client": true,
+        "use-resource-role-mappings": true
+      },
+      "constraints":[
+        {
+          "pattern":"/*",
+          "roles-allowed":[
+            "user"
+          ]
+        }
+      ]
+    }
+  ]
+}
