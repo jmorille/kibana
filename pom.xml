@@ -1,0 +1,321 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>com.agrica.socle.ppa</groupId>
+        <artifactId>ppa</artifactId>
+        <version>0.2.5</version>
+    </parent>
+
+    <groupId>com.agrica.usine</groupId>
+    <artifactId>kibana</artifactId>
+    <version>0.0.1-SNAPSHOT</version>
+
+    <packaging>pom</packaging>
+
+    <name>Aggrégateur de Logs</name>
+    <description>Aggrégateur de Logs</description>
+
+
+    <scm>
+        <connection>scm:git:ssh://gitlab-dei:usine/kibana.git</connection>
+        <developerConnection>scm:git:git@gitlab-dei:usine/kibana.git</developerConnection>
+        <url>http://gitlab-dei/usine/kibana.git</url>
+        <tag>HEAD</tag>
+    </scm>
+
+    <issueManagement>
+        <system>JIRA</system>
+        <url>http://jira/browse/KIBANA/</url>
+    </issueManagement>
+
+    <properties>
+        <!-- L'encoding des sources -->
+        <source.encoding>UTF-8</source.encoding>
+
+        <!-- Packaging -->
+        <packaging.assembly.app.format>tar.gz</packaging.assembly.app.format>
+
+        <!-- Sonar -->
+        <sonar.sources>sources/htdocs</sonar.sources>
+        <sonar.exclusions>
+          **/vendor/**/*,
+          **/bower_components/**/*
+        </sonar.exclusions>
+
+        <git-changelog-fromRef>kibana-0.0.1</git-changelog-fromRef>
+        <git-changelog-toRef>HEAD</git-changelog-toRef>
+        <git-changelog-gitServerApi>http://gitlab-dei/usine/${project.artifactId}/commit</git-changelog-gitServerApi>
+
+		</properties>
+
+    <dependencies>
+ 
+    </dependencies>
+
+
+    <build>
+        <sourceDirectory>${project.basedir}/sources</sourceDirectory>
+        <!--<testSourceDirectory>${project.basedir}/sources/test</testSourceDirectory>-->
+
+        <resources>
+            <resource>
+                <directory>resources</directory>
+            </resource>
+        </resources>
+
+        <plugins>
+
+            <!-- Build Configuration  -->
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>exec-maven-plugin</artifactId>
+                <version>${exec-maven-plugin.version}</version>
+                <executions>
+                    <execution>
+                        <id>composer-update</id>
+                        <phase>prepare-package</phase>
+                        <goals>
+                            <goal>exec</goal>
+                        </goals>
+                        <configuration>
+                            <executable>${phpbin}</executable>
+                            <workingDirectory>${project.build.sourceDirectory}/htdocs</workingDirectory>
+                            <arguments>
+                                <argument>composer-1.6.5.phar</argument>
+                                <argument>install</argument>
+                                <argument>--no-dev</argument>
+                                <argument>--no-progress</argument>
+                            </arguments>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>front-yarn-install</id>
+                        <phase>prepare-package</phase>
+                        <goals>
+                            <goal>exec</goal>
+                        </goals>
+                        <configuration>
+                            <executable>yarn</executable>
+                            <workingDirectory>${project.build.sourceDirectory}/htdocs</workingDirectory>
+                            <arguments>
+                                <argument>install</argument>
+                            </arguments>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <!-- Assembly Configuration  -->
+            <plugin>
+                <groupId>com.soebes.maven.plugins</groupId>
+                <artifactId>iterator-maven-plugin</artifactId>
+                <executions>
+                    <!-- Resources Local : By Env(INT/QA/RECETTE/PROD) -->
+                    <execution>
+                        <id>make-it-assembly-resources</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>iterator</goal>
+                        </goals>
+                        <configuration>
+                            <itemsWithProperties>
+                                <itemWithProptery>
+                                    <name>qa</name>
+                                    <properties>
+                                        <serverEnv>qa</serverEnv>
+                                    </properties>
+                                </itemWithProptery>
+                                <itemWithProptery>
+                                    <name>rec</name>
+                                    <properties>
+                                        <serverEnv>rec</serverEnv>
+                                    </properties>
+                                </itemWithProptery>
+                                <itemWithProptery>
+                                    <name>prod</name>
+                                    <properties>
+                                        <serverEnv>prod</serverEnv>
+                                    </properties>
+                                </itemWithProptery>
+                            </itemsWithProperties>
+
+
+                            <pluginExecutors>
+                                <pluginExecutor>
+                                    <!-- Configuration Iteration BEGIN -->
+                                    <plugin>
+                                        <groupId>org.apache.maven.plugins</groupId>
+                                        <artifactId>maven-assembly-plugin</artifactId>
+                                        <version>${maven-assembly-plugin.version}</version>
+                                    </plugin>
+                                    <goal>single</goal>
+                                    <configuration>
+                                        <useJvmChmod>true</useJvmChmod>
+                                        <appendAssemblyId>true</appendAssemblyId>
+                                        <tarLongFileMode>posix</tarLongFileMode>
+                                        <ignoreMissingDescriptor>true</ignoreMissingDescriptor>
+                                        <descriptors>
+                                            <descriptor>${project.basedir}/src/main/assembly/assembly-resources.xml
+                                            </descriptor>
+                                        </descriptors>
+                                        <!-- to ignore missing file : https://issues.apache.org/jira/browse/MSHARED-514 -->
+                                        <filters>
+                                            <filter>${project.basedir}/src/main/environment/app.properties</filter>
+                                            <filter>
+                                                ${project.basedir}/src/main/environment/app-${serverEnv}.properties
+                                            </filter>
+                                        </filters>
+                                    </configuration>
+                                    <!-- Configuration Iteration END -->
+                                </pluginExecutor>
+                            </pluginExecutors>
+
+                        </configuration>
+                    </execution>
+
+
+                    <!-- Config by Env(INT/QA/RECETTE/PROD)  -->
+                    <execution>
+                        <id>make-it-assembly-config</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>iterator</goal>
+                        </goals>
+                        <configuration>
+                            <itemsWithProperties>
+                                <itemWithProptery>
+                                    <name>dev</name>
+                                    <properties>
+                                        <serverEnv>dev</serverEnv>
+                                    </properties>
+                                </itemWithProptery>
+                                <itemWithProptery>
+                                    <name>prod</name>
+                                    <properties>
+                                        <serverEnv>template</serverEnv>
+                                    </properties>
+                                </itemWithProptery>
+                            </itemsWithProperties>
+
+
+                            <pluginExecutors>
+                                <pluginExecutor>
+                                    <!-- Configuration Iteration BEGIN -->
+                                    <plugin>
+                                        <groupId>org.apache.maven.plugins</groupId>
+                                        <artifactId>maven-assembly-plugin</artifactId>
+                                        <version>${maven-assembly-plugin.version}</version>
+                                    </plugin>
+                                    <goal>single</goal>
+                                    <configuration>
+                                        <useJvmChmod>true</useJvmChmod>
+                                        <appendAssemblyId>true</appendAssemblyId>
+                                        <tarLongFileMode>gnu</tarLongFileMode>
+                                        <useJvmChmod>true</useJvmChmod>
+                                        <ignoreMissingDescriptor>true</ignoreMissingDescriptor>
+                                        <descriptors>
+                                            <descriptor>src/main/assembly/assembly-config.xml</descriptor>
+                                        </descriptors>
+                                        <!-- to ignore missing file : https://issues.apache.org/jira/browse/MSHARED-514 -->
+                                        <filters>
+                                            <filter>${project.basedir}/src/main/environment/config.properties</filter>
+                                            <filter>
+                                                ${project.basedir}/src/main/environment/config-${serverEnv}.properties
+                                            </filter>
+                                        </filters>
+                                    </configuration>
+                                    <!-- Configuration Iteration END -->
+
+
+                                </pluginExecutor>
+                            </pluginExecutors>
+                        </configuration>
+                    </execution>
+
+                </executions>
+            </plugin>
+
+            <!-- Assembly htdocs -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-assembly-plugin</artifactId>
+                <configuration>
+                    <useJvmChmod>true</useJvmChmod>
+                    <appendAssemblyId>true</appendAssemblyId>
+                    <tarLongFileMode>gnu</tarLongFileMode>
+                </configuration>
+                <executions>
+                    <!-- htdocs -->
+                    <execution>
+                        <id>make-assembly-htdocs</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>single</goal>
+                        </goals>
+                        <configuration>
+                            <descriptors>
+                                <descriptor>${project.basedir}/src/main/assembly/assembly-htdocs.xml</descriptor>
+                            </descriptors>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+
+
+        </plugins>
+
+
+    </build>
+
+
+    <profiles>
+        <!-- Dev Config -->
+        <profile>
+            <id>todir</id>
+            <properties>
+                <packaging.assembly.app.format>dir</packaging.assembly.app.format>
+            </properties>
+        </profile>
+
+        <!-- Dev Config -->
+        <profile>
+            <id>dev-config</id>
+            <properties>
+                <packaging.assembly.app.format>dir</packaging.assembly.app.format>
+                <serverEnv>dev</serverEnv>
+            </properties>
+            <build>
+                <defaultGoal>assembly:single</defaultGoal>
+                <plugins>
+                    <!-- Assembly -->
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-assembly-plugin</artifactId>
+                        <configuration>
+                            <outputDirectory>${project.build.sourceDirectory}</outputDirectory>
+                            <finalName>.</finalName>
+                            <appendAssemblyId>false</appendAssemblyId>
+                            <tarLongFileMode>gnu</tarLongFileMode>
+                            <useJvmChmod>true</useJvmChmod>
+                            <descriptors>
+                                <descriptor>${project.basedir}/src/main/assembly/assembly-resources.xml</descriptor>
+                                <descriptor>${project.basedir}/src/main/assembly/assembly-config.xml</descriptor>
+                            </descriptors>
+                            <filters>
+                                <filter>${project.basedir}/src/main/environment/app.properties</filter>
+                                <filter>${project.basedir}/src/main/environment/app-${serverEnv}.properties</filter>
+                                <filter>${project.basedir}/src/main/environment/config.properties</filter>
+                                <filter>${project.basedir}/src/main/environment/config-${serverEnv}.properties</filter>
+                            </filters>
+                        </configuration>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+ 
+    </profiles>
+
+
+</project>
