@@ -1,0 +1,25 @@
+setup.kibana:
+  host: "kibana:5601"
+#  host: "web:443"
+#  protocol: "https"
+#  path: /kibana
+#  setup.kibana.ssl.certificate_authorities: ["/etc/nginx/ssl/ca.pem"]
+
+filebeat.config:
+  prospectors:
+    path: ${path.config}/prospectors.d/*.yml
+    reload.enabled: false
+  modules:
+    path: ${path.config}/modules.d/*.yml
+    reload.enabled: false
+
+
+
+#output.console:
+#  pretty: true
+
+output.elasticsearch:
+  hosts: ['${ELASTICSEARCH_HOST:elasticsearch}:${ELASTICSEARCH_PORT:9200}']
+
+#output.logstash:
+#  hosts: ["${LOGSTASH_HOST:logstash}:${LOGSTASH_PORT:5044}"]

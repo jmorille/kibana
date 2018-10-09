@@ -1,0 +1,16 @@
+version: '3.7'
+services:
+
+  filebeat:
+    build: ./docker/filebeat-apache
+    image: jmorille/apache-filebeat
+    environment:
+    - ELASTICSEARCH_HOST=elasticsearch
+    volumes:
+    - /var/log/apache2/:/var/log/apache2/
+    - ./config/certs/ca:/etc/nginx/ssl:ro
+    networks:
+      - esnet
+
+networks:
+  esnet:

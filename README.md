@@ -32,6 +32,11 @@ docker-compose -f docker-compose-filebeat.yml build
 docker-compose -f docker-compose-filebeat.yml run filebeat filebeat setup
 ```
 
+```bash
+docker-compose -f docker-compose-filebeat-apache.yml build
+docker-compose -f docker-compose-filebeat-apache.yml up
+```
+
 ### Ingest nginx log
 ```bash
 docker-compose -f docker-compose-filebeat.yml up
