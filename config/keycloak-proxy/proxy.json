@@ -1,5 +1,5 @@
 {
-  "target-url":"https://localhost",
+  "target-url":"http://head:9100",
   "send-access-token": true,
   "bind-address":"0.0.0.0",
   "http-port":"3001",
@@ -7,21 +7,20 @@
     {
       "base-path":"/",
       "adapter-config":{
-        "realm":"dory",
-        "auth-server-url":"http://localhost:8080/auth",
-        "ssl-required":"external",
-        "resource":"kibana-app",
-        "public-client": true,
-        "use-resource-role-mappings": true
+        "realm":"local",
+        "auth-server-url":"http://max:8080/auth",
+        "ssl-required":"none",
+        "resource":"kibana-cli",
+        "credentials": {
+          "secret": "c8820930-c98c-4b85-94ad-283b6df961cc"
+        }
       },
       "constraints":[
-        {
-          "pattern":"/*",
-          "roles-allowed":[
-            "kibana"
-          ]
-        }
+        { "pattern": "/auth/*", "permit": true  },
+        { "pattern":"/*",  "authenticate":true }
       ]
     }
   ]
 }
+
+

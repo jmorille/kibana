@@ -76,14 +76,27 @@ function docCertificateSubject {
 
 function createCA {
   # Créez une clé privée RSA pour votre serveur (elle sera au format PEM) :
+  echo "1- Créez une clé privée RSA pour votre serveur"
   openssl genrsa -aes256 -passout pass:$CA_PASS -out $CA_DIR/$PRIV_DIR/ca.key $NUMBITS
   chmod 400 $CA_DIR/$PRIV_DIR/ca.key
 
   # Créez un certificat auto-signé (structure X509) à l'aide de la clé RSA que vous venez de générer (la sortie sera au format PEM) :
-  openssl req -x509 -new         -extensions v3_ca    -sha256 -days 7300 -passin pass:$CA_PASS  -key $CA_DIR/$PRIV_DIR/ca.key -out $CA_DIR/$PUB_DIR/ca.pem -subj $CA_SUBJ
+  echo "2- Créez un certificat racine auto-signé"
+  CA_SAN="[ v3_ca ]\nkeyUsage = critical, digitalSignature, cRLSign, keyCertSign\nauthorityKeyIdentifier = keyid:always,issuer\nbasicConstraints = critical, CA:true\n[ CA_default ]\ncopy_extensions = copy"
+   # -config <(printf "$CA_SAN")
+   # -config /etc/ssl/openssl.cnf
+  openssl req -x509 -new         -extensions v3_ca    -sha256 -days 7300 \
+              -passin pass:$CA_PASS  -key $CA_DIR/$PRIV_DIR/ca.key \
+              -out $CA_DIR/$PUB_DIR/ca.pem \
+              -subj $CA_SUBJ  \
+              -config ./openssl.cnf
   chmod 444 $CA_DIR/$PUB_DIR/ca.pem
 
-  printCA
+  # der: pour installer le certificat dans leur navigateur
+  echo "3- Créez un format der pour l'importé dans le navigateur"
+  openssl x509 -in $CA_DIR/$PUB_DIR/ca.pem  -out $CA_DIR/$PUB_DIR/ca.der.crt -outform DER
+
+  #printCA
 }
 
 function saveCApasswd {
@@ -109,7 +122,10 @@ function printCA {
    echo ""
    echo "# ### ############################################### ### #"
    echo "# ### CA Root Certificate                             ### #"
-   openssl x509 -noout -text -passin pass:$CA_PASS  -in $CA_DIR/$PUB_DIR/ca.pem
+   openssl x509 -passin pass:$CA_PASS  -in $CA_DIR/$PUB_DIR/ca.pem  -noout -text
+   openssl x509 -passin pass:$CA_PASS  -in $CA_DIR/$PUB_DIR/ca.pem  -noout -dates
+   openssl x509 -passin pass:$CA_PASS  -in $CA_DIR/$PUB_DIR/ca.pem  -noout -purpose
+
    echo "# ### ############################################### ### #"
    echo ""
 }
@@ -205,6 +221,7 @@ function createCertificateTls {
  #  -extensions server_cert
  openssl req -new -sha256 -passin pass:$SERVER_PASS -key $TARGET_DIR/$PRIV_DIR/$SERVER_KEY_FILENAME-secure.pem -out $TARGET_DIR/$PRIV_DIR/$SERVER_FILENAME.csr -subj $CERT_SUBJ
 
+
  # Vous devez entrer le Nom de Domaine Pleinement Qualifié ("Fully Qualified Domain Name" ou FQDN)
  # de votre serveur lorsqu'OpenSSL vous demande le "CommonName",
  # c'est à dire que si vous générez une CSR pour un site web auquel on accèdera par l'URL https://www.foo.dom/, le FQDN sera "www.foo.dom".
@@ -228,8 +245,16 @@ function printCsr {
 function signCertificateTlsWithCa {
   # La commande qui signe la demande de certificat est la suivante : ==>  CRT = CSR + CA sign
   # openssl x509 -req -passin pass:$CA_PASS  -in $TARGET_DIR/$PRIV_DIR/$SERVER_FILENAME.csr -out $TARGET_DIR/$PUB_DIR/$SERVER_FILENAME.pem -CA $CA_DIR/$PUB_DIR/ca.pem -CAkey $CA_DIR/$PRIV_DIR/ca.key -CAcreateserial -CAserial $CA_DIR/$PRIV_DIR/ca.srl
-  openssl x509 -req -days 365 -sha512 -passin pass:$CA_PASS  -in $TARGET_DIR/$PRIV_DIR/$SERVER_FILENAME.csr -out $TARGET_DIR/$PUB_DIR/$SERVER_FILENAME.pem -CA $CA_DIR/$PUB_DIR/ca.pem -CAkey $CA_DIR/$PRIV_DIR/ca.key -CAcreateserial -CAserial $CA_DIR/$PRIV_DIR/ca.srl
-
+  #
+  # -reqexts SAN  -config <(cat /etc/ssl/openssl.cnf <(printf "\n[SAN]\n${CERT_SAN}")) \
+  # -extfile <(cat ./openssl.cnf  <(printf "\n${CERT_SAN}")) \
+  # -extfile <(printf "${CERT_SAN}") \
+  openssl x509 -req  -days 365 -sha512 \
+       -passin pass:$CA_PASS  -in $TARGET_DIR/$PRIV_DIR/$SERVER_FILENAME.csr \
+       -CA $CA_DIR/$PUB_DIR/ca.pem -CAkey $CA_DIR/$PRIV_DIR/ca.key -CAcreateserial \
+       -CAserial $CA_DIR/$PRIV_DIR/ca.srl \
+       -extfile <(printf "${CERT_SAN}\nbasicConstraints = CA:FALSE\nnsCertType = server\nauthorityKeyIdentifier = keyid,issuer:always\nkeyUsage = critical, digitalSignature, keyEncipherment\nextendedKeyUsage = serverAuth\nsubjectKeyIdentifier = hash") \
+       -out $TARGET_DIR/$PUB_DIR/$SERVER_FILENAME.pem
   printCrt
 }
 
@@ -546,10 +571,12 @@ done
 # ################################## ### #
 # ### Certificate Subject            ### #
 # ################################## ### #
-COMMON_SUBJ="/C=FR/ST=France/O=Organisation/L=Paris/S=Paris"
-CA_SUBJ="$COMMON_SUBJ/OU=DSI/CN=JmoCA"
-INTER_SUBJ="$COMMON_SUBJ/OU=DSI/CN=IntermediateCA"
-CERT_SUBJ="$COMMON_SUBJ/OU=DSI/CN=$SERVER_CN"
+COMMON_SUBJ="/C=FR/O=Agrica/OU=DSI"
+CA_SUBJ="$COMMON_SUBJ/CN=JmoCARoot/emailAddress=jmorille@gmail.com"
+CERT_SUBJ="$COMMON_SUBJ/L=Paris/ST=France/S=Paris/CN=$SERVER_CN"
+CERT_SAN="subjectAltName=DNS:localhost,DNS:127.0.0.1"
+
+INTER_SUBJ="$COMMON_SUBJ/CN=IntermediateCA"
 
 
 # ################################## ### #

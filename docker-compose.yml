@@ -4,8 +4,8 @@ services:
   web:
     image: nginx:1.15.4
     volumes:
-      - ./config/certs:/etc/nginx/ssl:ro
       - ./config/nginx/nginx-kibana.nginx:/etc/nginx/conf.d/default.conf:ro
+      - ./config/certs:/etc/nginx/ssl:ro
       - ./config/nginx/ssl-optim.nginx:/etc/nginx/nginx-ssl-optim.conf:ro
       - ./config/nginx/secu-optim.nginx:/etc/nginx/nginx-secu-optim.conf:ro
 #      - ./logs/nginx:/var/log/nginx
@@ -13,22 +13,25 @@ services:
       - "80:80"
       - "443:443"
     depends_on:
-    - elasticsearch
+    - kibana
 #    - keycloak
     networks:
       - esnet
 
-#  keycloak-proxy:
-#    image: jboss/keycloak-proxy:latest
-#    ports:
-#      - "3001:3001"
-#    volumes:
-#      - "./config/keycloak-proxy/proxy.json:/opt/jboss/conf/proxy.json"
-#    networks:
-#      - esnet
+  kibana-proxy:
+    image: jboss/keycloak-proxy:latest
+    ports:
+      - "3001:3001"
+    volumes:
+      - "./config/keycloak-proxy/proxy.json:/opt/jboss/conf/proxy.json"
+    networks:
+      - esnet
+      - keycloak-net
 
   kibana:
     image: docker.elastic.co/kibana/kibana-oss:6.4.2
+    ports:
+      - "5601:5601"
     environment:
       ELASTICSEARCH_URL: 'http://elasticsearch:9200'
     depends_on:
@@ -66,9 +69,22 @@ services:
     networks:
       - esnet
 
+  logstash:
+    image: docker.elastic.co/logstash/logstash-oss:6.4.2
+    ports:
+    - 5044:5044
+    - 9600:9600
+    volumes:
+    - ./config/logstash:/usr/share/logstash/pipeline
+    depends_on:
+    - elasticsearch
+    networks:
+    - esnet
+
 volumes:
   esdata1:
     driver: local
 
 networks:
   esnet:
+  keycloak-net:
