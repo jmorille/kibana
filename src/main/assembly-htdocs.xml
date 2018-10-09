@@ -1,0 +1,61 @@
+<assembly xmlns="http://maven.apache.org/plugins/maven-assembly-plugin/assembly/1.1.3"
+          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+          xsi:schemaLocation="http://maven.apache.org/plugins/maven-assembly-plugin/assembly/1.1.3 http://maven.apache.org/xsd/assembly-1.1.3.xsd">
+
+  <id>app-htdocs</id>
+  <formats>
+    <format>${packaging.assembly.app.format}</format>
+  </formats>
+
+  <includeBaseDirectory>false</includeBaseDirectory>
+
+
+  <fileSets>
+    <fileSet>
+      <directory>${project.build.sourceDirectory}/htdocs</directory>
+      <outputDirectory>htdocs</outputDirectory>
+      <excludes>
+        <!-- directory exclusion -->
+        <exclude>logs/**/*</exclude>
+        <!-- Project file -->
+        <!-- Project Configuration -->
+        <exclude>**/.editorconfig</exclude>
+
+        <!-- Generic files -->
+        <exclude>**/.travis</exclude>
+        <exclude>**/.travis.*</exclude>
+        <exclude>**/build.*</exclude>
+        <exclude>**/*.log</exclude>
+        <exclude>**/*.bat</exclude>
+        <exclude>**/*.sh</exclude>
+        <exclude>**/*.md</exclude>
+        <exclude>**/*.markdown</exclude>
+        <!-- JS -->
+        <exclude>**/yarn.lock</exclude>
+        <exclude>**/package-lock.json</exclude>
+      </excludes>
+      <fileMode>0644</fileMode>
+      <directoryMode>0755</directoryMode>
+    </fileSet>
+    <!-- Manage script -->
+    <fileSet>
+      <directory>${project.build.sourceDirectory}/htdocs/vendor/bin</directory>
+      <outputDirectory>htdocs/vendor/bin</outputDirectory>
+      <includes>
+        <include>*</include>
+      </includes>
+      <fileMode>0555</fileMode>
+      <directoryMode>0755</directoryMode>
+    </fileSet>
+
+ 
+  </fileSets>
+
+  <files>
+    <file>
+      <source>${basedir}/src/main/assembly/version.txt</source>
+      <outputDirectory>htdocs/web</outputDirectory>
+      <filtered>true</filtered>
+    </file>
+  </files>
+</assembly>

@@ -1,0 +1,5 @@
+Maven: ${pom.groupId}:${pom.artifactId}
+Version: ${pom.version}
+Date: ${build.date}
+Commit: ${git.commit.sha1}
+Branch: ${git.branch}
