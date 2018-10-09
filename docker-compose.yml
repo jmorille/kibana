@@ -8,7 +8,7 @@ services:
       - ./config/certs:/etc/nginx/ssl:ro
       - ./config/nginx/ssl-optim.nginx:/etc/nginx/nginx-ssl-optim.conf:ro
       - ./config/nginx/secu-optim.nginx:/etc/nginx/nginx-secu-optim.conf:ro
-#      - ./logs/nginx:/var/log/nginx
+      - ./logs/nginx:/var/log/nginx
     ports:
       - "80:80"
       - "443:443"
