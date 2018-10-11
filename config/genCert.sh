@@ -574,7 +574,7 @@ done
 COMMON_SUBJ="/C=FR/O=Agrica/OU=DSI"
 CA_SUBJ="$COMMON_SUBJ/CN=JmoCARoot/emailAddress=jmorille@gmail.com"
 CERT_SUBJ="$COMMON_SUBJ/L=Paris/ST=France/S=Paris/CN=$SERVER_CN"
-CERT_SAN="subjectAltName=DNS:localhost,DNS:127.0.0.1"
+CERT_SAN="subjectAltName=DNS:$SERVER_CN,DNS:localhost"
 
 INTER_SUBJ="$COMMON_SUBJ/CN=IntermediateCA"
 
