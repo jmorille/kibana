@@ -37,17 +37,7 @@
       <fileMode>0644</fileMode>
       <directoryMode>0755</directoryMode>
     </fileSet>
-    <!-- Manage script -->
-    <fileSet>
-      <directory>${project.build.sourceDirectory}/htdocs/vendor/bin</directory>
-      <outputDirectory>htdocs/vendor/bin</outputDirectory>
-      <includes>
-        <include>*</include>
-      </includes>
-      <fileMode>0555</fileMode>
-      <directoryMode>0755</directoryMode>
-    </fileSet>
-
+  
  
   </fileSets>
 
